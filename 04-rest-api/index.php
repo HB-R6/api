@@ -11,8 +11,6 @@ $pdo = getConnection();
     'REQUEST_METHOD' => $httpMethod
 ] = $_SERVER;
 
-// var_dump(explode('/', $uri));
-
 if ($uri === "/users" && $httpMethod === 'GET') {
     $stmt = $pdo->query("SELECT * FROM users");
     $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -56,4 +54,46 @@ if ($uri === "/users" && $httpMethod === 'POST') {
     ]);
 
     exit;
+}
+
+$uriParts = explode('/', ltrim($uri, '/'));
+
+if (count($uriParts) === 2 && $uriParts[0] === 'users') { // 2 parties dans mon URI : élément seul
+    $id = intval($uriParts[1]);
+
+    if ($id === 0) {
+        http_response_code(400); // Bad Request
+        echo json_encode([
+            'error' => "Le format de l'ID est incorrect"
+        ]);
+        exit;
+    }
+
+    if ($httpMethod === 'GET') {
+        $query = "SELECT * FROM users WHERE id=:id";
+        $stmt = $pdo->prepare($query);
+        $stmt->execute(['id' => $id]);
+
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($user === false) {
+            http_response_code(404);
+            echo json_encode(['error' => 'Utilisateur non trouvé']);
+            exit;
+        }
+
+        echo json_encode([
+            'uri' => '/users/' . $user['id'],
+            ...$user
+        ]);
+        exit;
+    }
+
+    if ($httpMethod === 'DELETE') {
+        $query = "DELETE FROM users WHERE id=:id";
+        $stmt = $pdo->prepare($query);
+        $stmt->execute(['id' => $id]);
+
+        http_response_code(204); // No Content
+    }
 }
