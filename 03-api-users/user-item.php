@@ -7,12 +7,14 @@ header("Access-Control-Allow-Origin: http://127.0.0.1:5500");
 
 if (!isset($_GET['id'])) {
     http_response_code(400); // 400 : Bad request
+    exit;
 }
 
 $id = intval($_GET['id']);
 
 if ($id === 0) { // intval a échoué : l'ID n'est pas un nombre
     http_response_code(400); // 400 : Bad request
+    exit;
 }
 
 $usersFound = array_filter($users, fn ($user) => $user['id'] === $id);
