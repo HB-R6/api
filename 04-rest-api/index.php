@@ -14,7 +14,19 @@ $pdo = getConnection();
 if ($uri === "/users" && $httpMethod === 'GET') {
     $stmt = $pdo->query("SELECT * FROM users");
     $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    echo json_encode($users);
+
+    // --- Fonction anonyme ---
+    // $output = array_map(function (array $user) {
+    //     return [
+    //         'uri' => '/users/' . $user['id'],
+    //         ...$user
+    //     ];
+    // }, $users);
+    // ------------------------
+
+    $output = array_map(fn (array $u) => ['uri' => '/users/' . $u['id'], ...$u], $users);
+
+    echo json_encode($output);
     exit;
 }
 
